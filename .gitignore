@@ -1,0 +1,6 @@
+*.cmp
+*.hdl.bak
+*.out
+*.tst
+
+projects/
