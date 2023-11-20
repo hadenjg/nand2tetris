@@ -28,17 +28,47 @@
 CHIP ALU {
     IN  
         x[16], y[16],  // 16-bit inputs        
-        zx, // zero the x input?
-        nx, // negate the x input?
-        zy, // zero the y input?
-        ny, // negate the y input?
-        f,  // compute (out = x + y) or (out = x & y)?
-        no; // negate the out output?
+        zx, // zero the x input? (mux16 with 0
+        nx, // negate the x input? (not16
+        zy, // zero the y input? (mux16
+        ny, // negate the y input? (not16
+        f,  // compute (out = x + y) or (out = x & y)? (add16 or and16 (what decided the or?
+        no; // negate the out output? (not16
     OUT 
         out[16], // 16-bit output
         zr,      // (out == 0, 1, 0)
         ng;      // (out < 0,  1, 0)
 
     PARTS:
-    //// Replace this comment with your code.
+	//zx
+	Mux16(a=x, b[0..15]=false, sel=zx, out=zxOut);
+	
+	//nx
+	Not16(in=zxOut, out=notxOut);
+	Mux16(a=zxOut, b=notxOut, sel=nx, out=nxOut);
+	
+	//zy
+	Mux16(a=y, b[0..15]=false, sel=zy, out=zyOut);
+	
+	//ny
+	Not16(in=zyOut, out=notyOut);
+	Mux16(a=zyOut, b=notyOut, sel=ny, out=nyOut);
+	
+	//f
+	Add16(a=nxOut, b=nyOut, out=addOut);
+	And16(a=nxOut, b=nyOut, out=andOut);
+	Mux16(a=andOut, b=addOut, sel=f, out=fOut);
+	
+	//no() ng (if out is negative
+	Not16(in=fOut, out=noOut);
+	Mux16(a=fOut, b=noOut, sel=no, out[15]=ng, out=orIn);
+	
+	//SOMETHING GETS FUCKED UP HERE AND I HAVE NO IDEA WHAT. MAY NEED TO DO THIS ON LINUX SINCE THE FUCKING 
+	//SIMULATORS DON"T WORK
+	//zr (if out ==0) 
+	Or8Way(in=orIn[0..7], out=or1);
+	Or8Way(in=orIn[8..15], out=or2);
+	Or(a=or1, b=or2, out=zr);
+	
+	Or16(a=orIn, b[0..15]=false, out=out);
 }
