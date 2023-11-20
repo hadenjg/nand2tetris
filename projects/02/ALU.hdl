@@ -61,14 +61,11 @@ CHIP ALU {
 	
 	//no() ng (if out is negative
 	Not16(in=fOut, out=noOut);
-	Mux16(a=fOut, b=noOut, sel=no, out[15]=ng, out=orIn);
+	Mux16(a=fOut, b=noOut, sel=no, out[15]=ng, out[0..7]=first8, out[8..15]=second8, out=out);
 	
-	//SOMETHING GETS FUCKED UP HERE AND I HAVE NO IDEA WHAT. MAY NEED TO DO THIS ON LINUX SINCE THE FUCKING 
-	//SIMULATORS DON"T WORK
 	//zr (if out ==0) 
-	Or8Way(in=orIn[0..7], out=or1);
-	Or8Way(in=orIn[8..15], out=or2);
-	Or(a=or1, b=or2, out=zr);
-	
-	Or16(a=orIn, b[0..15]=false, out=out);
+	Or8Way(in=first8, out=or1);
+	Or8Way(in=second8, out=or2);
+	Or(a=or1, b=or2, out=outOr);
+	Not(in=outOr, out=zr);
 }
